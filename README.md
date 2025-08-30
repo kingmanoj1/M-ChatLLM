@@ -314,13 +314,13 @@ uvicorn server:app --host 0.0.0.0 --port 8000 --workers 1
 
 ### 🌅 Light Theme
 <div align="center">
-  <img src="./assets/light-theme.png" alt="Light Theme Chat Interface" width="800">
+  <img src="./assets/Screenshot from 2025-08-30 14-38-54.png" alt="Light Theme Chat Interface" width="800">
   <p><em>Clean and modern light theme interface</em></p>
 </div>
 
 ### 🌙 Dark Theme  
 <div align="center">
-  <img src="./assets/dark-theme.png" alt="Dark Theme Chat Interface" width="800">
+  <img src="./assets/Screenshot from 2025-08-30 14-39-19.png" alt="Dark Theme Chat Interface" width="800">
   <p><em>Elegant dark theme for comfortable night usage</em></p>
 </div>
 
@@ -420,14 +420,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Bartowski** for the quantized GGUF models
 - **llama-cpp-python** contributors for the Python bindings
 - **FastAPI** team for the excellent web framework
-
----
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/kingmanoj1/M-ChatLLM/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/kingmanoj1/M-ChatLLM/discussions)
-- **Email**: your.email@example.com
 
 ---
 
