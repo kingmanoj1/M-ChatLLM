@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Meta-LLaMA Chat</title>
+  <style>
+    :root {
+      --bg-light: #f9f9fb;
+      --bg-dark: #1e1e2e;
+      --text-light: #1a1a1a;
+      --text-dark: #f1f1f1;
+      --primary: #4f46e5;
+      --secondary: #6366f1;
+      --card-light: #ffffff;
+      --card-dark: #2a2a3b;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-light);
+      color: var(--text-light);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    .chat-container {
+      width: 95%;
+      max-width: 1600px;
+      background: var(--card-light);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+    }
+
+    body.dark .chat-container {
+      background: var(--card-dark);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .toggle-btn {
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      color: inherit;
+      transition: transform 0.3s;
+    }
+
+    .toggle-btn:hover {
+      transform: rotate(20deg);
+    }
+
+    .chat-box {
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 10px;
+      padding: 15px;
+      flex: 1;
+      overflow-y: auto;
+      background: inherit;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+
+    .chat-message {
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      max-width: 80%;
+      line-height: 1.4;
+      font-size: 25px;
+    }
+
+    .user {
+      background: var(--primary);
+      color: white;
+      margin-left: auto;
+    }
+
+    .assistant {
+      background: rgba(99, 102, 241, 0.1);
+      color: inherit;
+      margin-right: auto;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+    }
+
+    .control-group label {
+      margin-bottom: 3px;
+    }
+
+    .control-group input {
+      padding: 5px 8px;
+      border: 1px solid rgba(0,0,0,0.2);
+      border-radius: 6px;
+      background: inherit;
+      color: inherit;
+      width: 120px;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    textarea {
+      flex: 1;
+      resize: none;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.2);
+      padding: 10px;
+      font-size: 25px;
+      background: inherit;
+      color: inherit;
+    }
+
+    button {
+      background: var(--primary);
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: var(--secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="header">
+      <h2>🤖 Meta-LLaMA-3.1-8B</h2>
+      <button class="toggle-btn" onclick="toggleTheme()">🌙</button>
+    </div>
+
+    <div id="chat-box" class="chat-box"></div>
+
+    <div class="input-area">
+      <textarea id="prompt" rows="2" placeholder="Type your message..."></textarea>
+      <button id="action-btn" onclick="handleAction()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    let darkMode = false;
+    let controller = null; // AbortController for stopping requests
+    let isStreaming = false;
+
+    function toggleTheme() {
+      darkMode = !darkMode;
+      document.body.classList.toggle("dark", darkMode);
+      document.querySelector(".toggle-btn").textContent = darkMode ? "☀️" : "🌙";
+    }
+
+    async function handleAction() {
+      if (isStreaming) {
+        stopStreaming();
+      } else {
+        sendPrompt();
+      }
+    }
+
+    async function sendPrompt() {
+      const promptEl = document.getElementById("prompt");
+      const chatBox = document.getElementById("chat-box");
+      const actionBtn = document.getElementById("action-btn");
+
+      const prompt = promptEl.value.trim();
+      if (!prompt) return;
+
+      // Add user message
+      const userMsg = document.createElement("div");
+      userMsg.className = "chat-message user";
+      userMsg.textContent = prompt;
+      chatBox.appendChild(userMsg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      promptEl.value = "";
+
+      // Add assistant placeholder
+      const assistantMsg = document.createElement("div");
+      assistantMsg.className = "chat-message assistant";
+      chatBox.appendChild(assistantMsg);
+
+      // Switch to stop mode
+      isStreaming = true;
+      actionBtn.textContent = "Stop";
+
+      controller = new AbortController();
+
+      try {
+        const response = await fetch("http://localhost:8000/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: prompt, max_tokens: 300 }),
+          signal: controller.signal
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          assistantMsg.textContent += decoder.decode(value, { stream: true });
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+      } catch (err) {
+        if (err.name === "AbortError") {
+          assistantMsg.textContent += "\n\n⚠️ Generation stopped.";
+        } else {
+          assistantMsg.textContent = "❌ Error: " + err.message;
+        }
+      } finally {
+        isStreaming = false;
+        actionBtn.textContent = "Send";
+      }
+    }
+
+    function stopStreaming() {
+      if (controller) {
+        controller.abort();
+      }
+      isStreaming = false;
+      document.getElementById("action-btn").textContent = "Send";
+    }
+  </script>
+</body>
+</html>
