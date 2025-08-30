@@ -314,20 +314,14 @@ uvicorn server:app --host 0.0.0.0 --port 8000 --workers 1
 
 ### 🌅 Light Theme
 <div align="center">
-  <img src="./assets/Screenshot from 2025-08-30 14-38-54.png" alt="Light Theme Chat Interface" width="800">
+  <img src="./assets/Screenshot from 2025-08-30 14-39-19.png" alt="Light Theme Chat Interface" width="800">
   <p><em>Clean and modern light theme interface</em></p>
 </div>
 
 ### 🌙 Dark Theme  
 <div align="center">
-  <img src="./assets/Screenshot from 2025-08-30 14-39-19.png" alt="Dark Theme Chat Interface" width="800">
+  <img src="./assets/Screenshot from 2025-08-30 14-38-54.png" alt="Dark Theme Chat Interface" width="800">
   <p><em>Elegant dark theme for comfortable night usage</em></p>
-</div>
-
-### ⚡ Live Demo
-<div align="center">
-  <img src="./assets/demo.gif" alt="Live Demo of Streaming" width="800">
-  <p><em>Real-time streaming response demonstration</em></p>
 </div>
 
 ### 💻 CLI Interface
